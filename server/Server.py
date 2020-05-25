@@ -16,7 +16,7 @@ class Server:
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((self.IP, self.PORT))
         print('Listening for clients...')
-        self.server_socket.listen(5)
+        self.server_socket.listen()
         self.receive_message_in_a_thread()
 
     def receive_message(self, socket):
