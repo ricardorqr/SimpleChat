@@ -1,5 +1,4 @@
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
-from PyQt5.QtCore import Qt
+from PyQt5 import QtWidgets, uic
 from common.util import Util
 import socket
 import threading
