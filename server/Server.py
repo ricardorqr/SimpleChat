@@ -22,7 +22,6 @@ class Server:
     def receive_message(self, socket):
         while True:
             incoming_message = socket.recv(1024)
-            print(incoming_message)
             if not incoming_message:
                 break
             self.last_message = incoming_message.decode('utf-8')

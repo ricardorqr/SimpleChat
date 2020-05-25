@@ -22,7 +22,6 @@ class ChatController(QtWidgets.QMainWindow, Ui_MainWindow):
         self.__PORT = 5555
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_socket.connect((self.__IP, self.__PORT))
-        self.thread = None
         self.pushButtonSend.setEnabled(False)
         self.listening_message()
 
@@ -30,13 +29,14 @@ class ChatController(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushButtonSend.pressed.connect(self.send_message)
 
     def closeEvent(self, event):
-        self.thread.close()
         self.client_socket.close()
+        print('Finished')
         event.accept()
+        exit(0)
 
     def listening_message(self):
-        self.thread = threading.Thread(target=self.receive_message_from_server, args=(self.client_socket,))
-        self.thread.start()
+        thread = threading.Thread(target=self.receive_message_from_server, args=(self.client_socket,))
+        thread.start()
 
     def receive_message_from_server(self, socket):
         while True:
