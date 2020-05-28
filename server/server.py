@@ -1,46 +1,64 @@
 import socket
+import sys
 import threading
+import traceback
 
 
 class Server:
 
     def __init__(self):
-        self.server_socket = None
-        self.IP = ''
-        self.PORT = 5555
+        self.SERVER_SOCKET = None
         self.clients = []
-        self.last_message = ''
-        self.create_server()
+        self.HEADER = 1024
+        self.PORT = 5555
+        self.SERVER = ''
+        self.ADDRESS = (self.SERVER, self.PORT)
+        self.FORMAT = 'utf-8'
+        self.DISCONNECT_MESSAGE = "!DISCONNECT!"
 
-    def create_server(self):
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind((self.IP, self.PORT))
-        print('Listening for clients...')
-        self.server_socket.listen()
-        self.receive_message_in_a_thread()
+    def start(self):
+        self.SERVER_SOCKET = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.SERVER_SOCKET.bind(self.ADDRESS)
+        self.SERVER_SOCKET.listen()
+        print('Server listening for clients...')
 
-    def receive_message(self, socket):
         while True:
-            incoming_message = socket.recv(1024)
-            if not incoming_message:
-                break
-            self.last_message = incoming_message.decode('utf-8')
-            self.broadcast_message_to_all_clients(socket)
-        socket.close()
-
-    def broadcast_message_to_all_clients(self, sender_sockets):
-        for client in self.clients:
-            socket, (IP, PORT) = client
-            if socket is not sender_sockets:
-                socket.sendall(self.last_message.encode('utf-8'))
-
-    def receive_message_in_a_thread(self):
-        while True:
-            client = so, (IP, PORT) = self.server_socket.accept()
+            client = client_socket, (IP, PORT) = self.SERVER_SOCKET.accept()
             self.add_to_clients(client)
-            print(f'Connected to {IP}: {PORT}')
-            thread = threading.Thread(target=self.receive_message, args=(so,))
+            print(f'Server {IP}: {PORT}')
+            thread = threading.Thread(target=self.handle_client, args=(client_socket, (IP, PORT)))
             thread.start()
+            print(f'Active connections: {threading.activeCount() - 1}')
+
+    def handle_client(self, client_socket, client_address):
+        print(f'Connected: {client_address} ')
+        while True:
+            try:
+                message_length = client_socket.recv(self.HEADER).decode(self.FORMAT)
+                if message_length:
+                    message_length = int(message_length)
+                    message = client_socket.recv(message_length).decode(self.FORMAT)
+                    if message == self.DISCONNECT_MESSAGE:
+                        print(f'Disconnected: {client_address} ')
+                        break
+                    self.broadcast_message_to_all_clients(client_socket, message)
+            except Exception:
+                print('1 - Exception in user code:')
+                print('-' * 60)
+                traceback.print_exc(file=sys.stdout)
+                print('-' * 60)
+                continue
+        client_socket.close()
+
+    def broadcast_message_to_all_clients(self, client_socket, message):
+        try:
+            for client in self.clients:
+                socket, (IP, PORT) = client
+                if socket is not client_socket:
+                    socket.sendall(message.encode(self.FORMAT))
+        except Exception:
+            self.clients.remove(client)
+            socket.close()
 
     def add_to_clients(self, client):
         if client not in self.clients:
@@ -48,4 +66,5 @@ class Server:
 
 
 if __name__ == '__main__':
-    Server()
+    server = Server()
+    server.start()
