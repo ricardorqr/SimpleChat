@@ -16,8 +16,8 @@ class NewChatController(QtWidgets.QMainWindow, Ui_MainWindow):
         QtWidgets.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
-        self.__user = ''
-        self.__data = ''
+        self.user = ''
+        self.data = ''
 
         self.HEADER = 64
         self.PORT = 5555
@@ -36,7 +36,6 @@ class NewChatController(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def closeEvent(self, event):
         self.send_message_to_server(self.DISCONNECT_MESSAGE)
-        self.client_socket.close()
         event.accept()
         exit(0)
 
@@ -59,9 +58,9 @@ class NewChatController(QtWidgets.QMainWindow, Ui_MainWindow):
         socket.close()
 
     def send_message(self):
-        self.__user = self.lineEdit.text().strip() + ": "
-        self.__data = self.textEditMessage.toPlainText().strip()
-        message = self.__user + self.__data
+        self.user = self.lineEdit.text().strip() + ": "
+        self.data = self.textEditMessage.toPlainText().strip()
+        message = self.user + self.data
         self.textEditChat.append(pack_message(message))
         self.textEditMessage.setText('')
         self.send_message_to_server(message)
@@ -75,10 +74,10 @@ class NewChatController(QtWidgets.QMainWindow, Ui_MainWindow):
         self.textEditChat.append(pack_message(message))
         self.send_message_to_server(message)
 
-    def send_message_to_server(self, message):
-        message = message.encode(self.FORMAT)
+    def send_message_to_server(self, msg):
+        message = msg.encode(self.FORMAT)
         message_length = len(message)
         send_length = str(message_length).encode(self.FORMAT)
         send_length += b' ' * (self.HEADER - len(send_length))
-        self.client_socket.sendall(send_length)
-        self.client_socket.sendall(message)
+        self.client_socket.send(send_length)
+        self.client_socket.send(message)

@@ -11,7 +11,6 @@ class NewServer:
         self.clients = []
         self.HEADER = 1024
         self.PORT = 5555
-        # self.SERVER = socket.gethostbyname(socket.gethostname())
         self.SERVER = ''
         self.ADDRESS = (self.SERVER, self.PORT)
         self.FORMAT = 'utf-8'
@@ -29,10 +28,10 @@ class NewServer:
             print(f'Server {IP}: {PORT}')
             thread = threading.Thread(target=self.handle_client, args=(client_socket, (IP, PORT)))
             thread.start()
-            print(f"Active connections: {threading.activeCount() - 1}")
+            print(f'Active connections: {threading.activeCount() - 1}')
 
     def handle_client(self, client_socket, client_address):
-        print(f"Connected: {client_address}\n")
+        print(f'Connected: {client_address} ')
         while True:
             try:
                 message_length = client_socket.recv(self.HEADER).decode(self.FORMAT)
@@ -40,15 +39,15 @@ class NewServer:
                     message_length = int(message_length)
                     message = client_socket.recv(message_length).decode(self.FORMAT)
                     if message == self.DISCONNECT_MESSAGE:
-                        print(f"Disconnected: {client_address}")
+                        print(f'Disconnected: {client_address} ')
                         break
                     self.broadcast_message_to_all_clients(client_socket, message)
             except Exception:
-                print("1 - Exception in user code:")
-                print("-" * 60)
+                print('1 - Exception in user code:')
+                print('-' * 60)
                 traceback.print_exc(file=sys.stdout)
-                print("-" * 60)
-                break
+                print('-' * 60)
+                continue
         client_socket.close()
 
     def broadcast_message_to_all_clients(self, client_socket, message):
@@ -56,12 +55,8 @@ class NewServer:
             for client in self.clients:
                 socket, (IP, PORT) = client
                 if socket is not client_socket:
-                        socket.sendall(message.encode(self.FORMAT))
+                    socket.sendall(message.encode(self.FORMAT))
         except Exception:
-            print("1 - Exception in user code:")
-            print("-" * 60)
-            traceback.print_exc(file=sys.stdout)
-            print("-" * 60)
             self.clients.remove(client)
             socket.close()
 
